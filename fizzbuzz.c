@@ -8,6 +8,10 @@
 // Three functions were designed to complete this task, all taking
 // a maximum argument (generally of 100) and returning an int of 0
 // upon completion.
+// One method uses simple branching in a foor loop, another passes
+// a string pointer to a smaller function which then calculates
+// similar to the first method, and the last uses constant arrays
+// and a for loop without any "if" branches.
 
 #include <stdio.h>
 #include <stdlib.h>
