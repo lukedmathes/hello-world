@@ -1,0 +1,171 @@
+// A few basic mathematical functions based on user inputted numbers.
+
+// Factorial function which multiples a number by all integers below it,
+// a Reverse number function which reverses the order of digits, and
+// two Fibonacci sequence functions, one using a for loop and the other
+// using recursion.
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+void flush_stdin(void);
+int get_num_input(void);
+
+int factorial(int number);
+int reverse_nums(int original);
+
+void print_fibonacci(void);
+
+int fibonacci(int reference);
+int fibonacci_recur(int reference);
+int fib_recur_iter(int a, int b, int reference);
+
+
+// Canned functions that ask for a number from STDin, return if number is non-zero,
+// and flush STDin and loop otherwise.
+void flush_stdin(void)
+{
+    int c;
+    while((c = getchar()) != EOF)
+        if (c == '\n')
+            break;
+}
+int get_num_input(void)
+{
+    int number = 0;
+
+    do {
+        printf("Please enter your number: ");
+        scanf(" %d", &number);
+        flush_stdin();
+    } while (number == 0);
+    return number;
+}
+
+
+// Recursive factorial function. Could easily be done with a "for" loop and no
+// recursion, but this is very convenient and the integer will overflow long
+// before the stack does.
+// Also due to only being a linear recursive process, it does not require a
+// significant amount of resources compared to other recursive processes.
+int factorial(int number)
+{
+    if (number == 1) return 1;
+    return (number * factorial(number - 1));
+}
+// Only works up until 13! due to integer limitations.
+
+
+
+// Basic function that reverses the order or an inputted number.
+// Could have also been done by converting to a string and then reversing the
+// number one character at a time, but this solution avoids possibly messy
+// string print functions.
+int reverse_nums(int original)
+{
+	int result = 0;
+
+	while(original != 0)
+	{
+		result *= 10;
+		result += original % 10;
+		original /= 10;
+	}
+	return result;
+}
+
+
+// Prints the first 100 Fibonacci numbers. Just a simple function to prototype
+// one Fibonacci algorithm.
+void print_fibonacci(void)
+{
+    int a = 0;
+    int b = 1;
+    int c = 0;          // c initialised to 0, but set before printing
+
+    // Print initial 0 and 1 values in sequence
+    printf("%i\n", a);
+    printf("%i\n", b);
+
+    int i;
+
+    for (i=1; i<=100; i++)
+    {
+        c = a + b;
+        printf("%i\n", c);
+        a = b;
+        b = c;
+    }
+}
+
+int fibonacci(int reference)
+{
+    int a = 0;
+    int b = 1;
+    int c = 0;          // c initialised to 0, but set before printing
+
+    int i;
+
+    for (i=1; i<reference; i++)
+    {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+    return c;
+}
+
+
+// Fibonacci Sequence using recursion, structure taken from a Lisp Fibonacci
+// sequence calculator.
+// Initially called fibonacci_recur sets initial values while fib_recur_iter
+// runs every subsequent iteration until the passed reference is at 0.
+int fibonacci_recur(int reference)
+{
+    if (reference == 0) return 0;
+    return fib_recur_iter(0, 1, (reference-1));
+}
+
+int fib_recur_iter(int a, int b, int reference)
+{
+    if (reference == 0) return b;
+    return fib_recur_iter(b, (a+b), (reference-1));
+}
+
+
+int main()
+{
+
+    int number = 0;
+
+
+    printf("Please enter a number to be factorialised.\n");
+    number = get_num_input();
+    number = factorial(number);
+    printf("The factorial is: %d\n\n", number);
+
+    printf("Please enter a number to be reversed.\n");
+    number = get_num_input();
+    number = reverse_nums(number);
+    printf("The reversed number is: %d\n\n", number);
+
+    // print_fibonacci():
+
+    // Fibonacci using for loop
+    printf("Please enter a what number in the Fibonacci sequence you would like (calculated using for loop).\n");
+    number = get_num_input();
+    number = fibonacci(number);
+    printf("The Fibonacci number is: %d\n\n", number);
+
+    // Fibonacci using recursion
+    printf("Please enter a what number in the Fibonacci sequence you would like (calculated using recursion).\n");
+    number = get_num_input();
+    number = fibonacci_recur(number);
+    printf("The Fibonacci number is: %d\n\n", number);
+
+
+
+    return 0;
+}
