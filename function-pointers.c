@@ -10,6 +10,12 @@
 // While function prototypes and constant declarations are usually in a separate header file, they have been included
 // here for neatness on Github.
 
+// Update 25-02-16
+// Changed get_num_input function to use fgets and strtol rather than scanf. The benefits of this are that the program
+// no longer crashes when the user enters a letter before a number. Function can now find a single number amongst a
+// string of characters. While it still cannot receive non-integers and does not recognise numbers separated by a comma,
+// this is still a massive improvement.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -56,6 +62,7 @@ int get_expression(char* print_message){
         int i;
         for (i=0; i<total_expressions; i++) {
             if (expression == expressions_list[i]) {
+                flush_stdin();
                 return i;
             }
         }
@@ -64,10 +71,10 @@ int get_expression(char* print_message){
     }
 }
 
+#define new_get_num
+#ifndef new_get_num
 
-// Has issues with users entering a letter followed by a number.
-// Will need to be rewritten at some point by taking a string and parsing it
-// or perhaps using fgets + strtol. Same function can be used elsewhere for any number.
+// Obsolete, crashes when user enters a letter before a number
 int get_num_input(char* print_message)
 {
     int number = 0;
@@ -79,8 +86,28 @@ int get_num_input(char* print_message)
         flush_stdin();
     }
 }
+#else
+#define PROCESS_STRING_LENGTH 30
+int get_num_input(char* print_message)
+{
+    char process[PROCESS_STRING_LENGTH] = {0};
+    char *endpt;
 
+    while(true) {
+        printf("%s", print_message);
+        fgets(process, PROCESS_STRING_LENGTH, stdin);
+        int i = 0;
+        while (process[i] != 0) {       //Null terminator
+            if ((process[i] >= '0') && (process[i] <= '9')) {
+                return strtol(&process[i], &endpt, 10);
+            }
+            i++;
+        }
+        printf("Error, that does not appear to be a valid number.\n");
+    }
+}
 
+#endif // new_get_num
 
 
 // Simple expression functions, just an example that can be replaced with anything else
