@@ -16,6 +16,9 @@
 // string of characters. While it still cannot receive non-integers and does not recognise numbers separated by a comma,
 // this is still a massive improvement.
 
+// Update 26-02-16
+// Slight modification to get_num_input allowing strtol to process negative numbers.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -97,8 +100,9 @@ int get_num_input(char* print_message)
         printf("%s", print_message);
         fgets(process, PROCESS_STRING_LENGTH, stdin);
         int i = 0;
-        while (process[i] != 0) {       //Null terminator
-            if ((process[i] >= '0') && (process[i] <= '9')) {
+        while ((process[i] != 0) && (i < PROCESS_STRING_LENGTH)) {       //Null terminator
+            if ((process[i] == '-' && ((process[i+1] >= '0') && (process[i+1] <= '9'))) ||
+                (process[i] >= '0') && (process[i] <= '9')) {
                 return strtol(&process[i], &endpt, 10);
             }
             i++;
@@ -106,6 +110,11 @@ int get_num_input(char* print_message)
         printf("Error, that does not appear to be a valid number.\n");
     }
 }
+
+// Can definitely do more error checking on strtol's output.
+// Also need a method of checking if number of characters entered is greater than PROCES_STRING_LENGTH
+// as this causes issues with cutoff and also leaving characters in stdin.
+
 
 #endif // new_get_num
 
