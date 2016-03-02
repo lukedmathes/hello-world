@@ -9,13 +9,22 @@
 // Modified get_num_input to use the improved version from function pointer program
 // Added Pascal's Triangle function which automatically prints the triangle left-aligned.
 
+// Update 02-03-16
+// Changed to use the get_num_input located in num_input.c
+// Added simple checking functions to limit user inputs beyond unreasonable bounds
+
 
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-void flush_stdin(void);
-int get_num_input(char* print_message);
+bool factorial_check(const int a);
+bool fibonacci_check(const int a);
+bool pascal_check(const int a);
+
+#include "num_input.c"
+
 
 int factorial(int number);
 int reverse_nums(int original);
@@ -29,41 +38,49 @@ int fib_recur_iter(int a, int b, int reference);
 void pascal_triangle(int maxlevel);
 
 
-// Canned functions that ask for a number from STDin, return if number is non-zero,
-// and flush STDin and loop otherwise.
-void flush_stdin(void)
-{
-    int c;
-    while((c = getchar()) != EOF)
-        if (c == '\n')
-            break;
-}
 
+// Variable checking functions as part of get_num_input
 
-#define PROCESS_STRING_LENGTH 30
-int get_num_input(char* print_message)
-{
-    char process[PROCESS_STRING_LENGTH] = {0};
-    char *endpt;
-
-    while(1) {                                  //Infinite Loop
-        printf("%s", print_message);
-        fgets(process, PROCESS_STRING_LENGTH, stdin);
-        int i = 0;
-        while ((process[i] != 0) && (i < PROCESS_STRING_LENGTH)) {       //Null terminator
-            if ((process[i] == '-' && ((process[i+1] >= '0') && (process[i+1] <= '9'))) ||
-                (process[i] >= '0') && (process[i] <= '9')) {
-                return strtol(&process[i], &endpt, 10);
-            }
-            i++;
-        }
-        printf("Error, that does not appear to be a valid number.\n");
+// Factorials cannot be negative or too large due to integer constraints
+#define MAX_FACTORIAL 12        // Highest number which does not overflow a 32 bit signed integer
+bool factorial_check(const int a) {
+    if ((0 < a) && (a <= MAX_FACTORIAL)) {
+        return true;
+    }
+    else {
+        printf("Error, factorial must be between 0 and %d\n", MAX_FACTORIAL);
+        return false;
     }
 }
 
-// Can definitely do more error checking on strtol's output.
-// Also need a method of checking if number of characters entered is greater than PROCES_STRING_LENGTH
-// as this causes issues with cutoff and also leaving characters in stdin.
+
+// Fibonacci numbers cannot be negative or too large due to integer constraints
+#define MAX_FIBONACCI 46        // Highest number which does not overflow a 32 bit signed integer
+bool fibonacci_check(const int a) {
+    if ((0 < a) && (a <= MAX_FIBONACCI)) {
+        return true;
+    }
+    else {
+        printf("Error, Fibonacci numbers must be between 0 and %d\n", MAX_FIBONACCI);
+        return false;
+    }
+}
+
+
+// Pascal numbers cannot be larger than the integer array that holds them
+#define MAX_PASCAL_LENGTH 30
+bool pascal_check(const int a) {
+    if ((0 < a) && (a < MAX_PASCAL_LENGTH)) {
+        return true;
+    }
+    else {
+        printf("Error, Pascal's triangle level must be between 0 and %d\n", MAX_PASCAL_LENGTH);
+        return false;
+    }
+}
+
+
+
 
 
 // Recursive factorial function. Could easily be done with a "for" loop and no
@@ -156,16 +173,17 @@ int fib_recur_iter(int a, int b, int reference)
 }
 
 // Pascal's Triangle Function
-#define MAX_ARRAY_LENGTH 30
+//#define MAX_PASCAL_LENGTH 30      Defined above
 void pascal_triangle(int maxlevel){
 
-    if (maxlevel >= MAX_ARRAY_LENGTH) {
+    // Redundant check with new get_num_input, kept in for safekeeping though.
+    if (maxlevel >= MAX_PASCAL_LENGTH) {
         printf("Error, number is too large.");
         return;
     }
 
     // values[30] is used since C cannot initialise an array length with a variable
-    int values[MAX_ARRAY_LENGTH] = {0};                // Initialise array to all 0
+    int values[MAX_PASCAL_LENGTH+1] = {0};                // Initialise array to all 0
     values[0] = 1;                       // Set first value in array to 1
     int level = 0;                       // level goes from 0 to maxlevel - 1
     int i = 0;
@@ -194,28 +212,28 @@ int main()
     int number = 0;
 
 
-    number = get_num_input("Please enter a number to be factorialised:");
+    number = get_num_input("Please enter a number to be factorialised:", factorial_check);
     number = factorial(number);
     printf("The factorial is: %d\n\n", number);
 
-    number = get_num_input("Please enter a number to be reversed:");
+    number = get_num_input("Please enter a number to be reversed:", positive_check);
     number = reverse_nums(number);
     printf("The reversed number is: %d\n\n", number);
 
     // print_fibonacci():
 
     // Fibonacci using for loop
-    number = get_num_input("Please enter a what number in the Fibonacci sequence you would like (calculated using for loop):");
+    number = get_num_input("Please enter a what number in the Fibonacci sequence you would like (calculated using for loop):", fibonacci_check);
     number = fibonacci(number);
     printf("The Fibonacci number is: %d\n\n", number);
 
     // Fibonacci using recursion
-    number = get_num_input("Please enter a what number in the Fibonacci sequence you would like (calculated using recursion):");
+    number = get_num_input("Please enter a what number in the Fibonacci sequence you would like (calculated using recursion):", fibonacci_check);
     number = fibonacci_recur(number);
     printf("The Fibonacci number is: %d\n\n", number);
 
     // Print Pascal's Triangle
-    number = get_num_input("Please enter a level of Pascal's Triangle you would like to print up until:");
+    number = get_num_input("Please enter a level of Pascal's Triangle you would like to print up until:", pascal_check);
     pascal_triangle(number);    //No need to return and print as pascal_triangle prints already
 
 
