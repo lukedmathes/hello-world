@@ -1,16 +1,25 @@
-// UNFINISHED ALPHA
-// ONLY PRINTS EACH SET OF THREE DIGITS AND CORRESPONDING ORDER OF MAGNITUDE
+/*
+************************************************************************************************
+number-to-text.c
 
-/* 
-Completed:
-    String input and number isolation
-    Separation into groups of three digits
-    Printing of order such as thousand, million etc after each group of 3 digits
-    
-Uncompleted:
-    "print_hundreds" function printing each group of three numbers
-    Error testing and better input sanitising
-    Support for negative numbers
+This module details a simple function to translate an entered number into it's word equivalent.
+************************************************************************************************
+
+This module first takes from the user a number input through get_string_input which can isolate
+the digits and a negative sign entered from additional surrounding text. The function also
+returns a length integer used to keep track of the input.
+
+The main loop then divides the entered string into groups of three and passes it to
+print_hundreds with padded zeros if necessary. This function then outputs to stdout the word
+equivalent number. The main loop checks how many groups of three are remaining and prints a
+large number such as thousand or million following.
+
+The entered number is never transformed into an integer as keeping the number divided by base
+10 reduces mathematical calculations and the ASCII characters can easily be transformed into
+their integer equivalent by taking away the ASCII offset. Not changing the entered number into
+an integer also allows the module to calculate numbers up to ~10^29 if needed.
+
+************************************************************************************************
 */
 
 
@@ -22,9 +31,19 @@ Uncompleted:
 #include <stdint.h>
 
 #define MAX_STRING_LENGTH 30
+#define ASCII_OFFSET 0x30
 
 
-const char* order[] = {""," thousand, ", " million, ", " billion, ", " trillion, ", " quadrillion, ", "quintillion, "};
+void flush_stdin(void);
+uint8_t get_string_input(char* string_destination);
+void print_hundreds(char* print_string);
+
+
+const char* digits[] = {"", "one ", "two ", "three ", "four ", "five ", "six ", "seven ", "eight ", "nine "};
+const char* teens[] = {"ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"};
+const char* tens[] = {"", "", "twenty ", "thirty ", "forty ", "fifty ", "sixty ", "seventy ", "eighty ", "ninety "};
+const char* order[] = {"","thousand, ", "million, ", "billion, ", "trillion, ", "quadrillion, ", "quintillion, ", "sextillion, ", "septillion, ", "octillion, ", "nonillion, "};
+// Nonillion is 10^30 so with MAX_STRING_LENGTH at 30, hopefully it will never reach even with the largest entered number
 
 void flush_stdin(void)
 {
@@ -68,7 +87,8 @@ uint8_t get_string_input(char* string_destination)
         uint8_t i = 0;
         while ((0 != temp_string[i]) && (MAX_STRING_LENGTH > i))
         {
-            if (('0' <= temp_string[i]) && (temp_string[i] <= '9'))
+            if ((('0' <= temp_string[i]) && (temp_string[i] <= '9')) ||     // Digit detected
+                (('-' == temp_string[i]) && ('0' <= temp_string[i+1]) && (temp_string[i+1] <= '9')))    // Minus followed by digit
             {
                 uint8_t length = 1;
                 while (('0' <= temp_string[i+length]) && ('9' >= temp_string[i+length]))
@@ -87,6 +107,8 @@ uint8_t get_string_input(char* string_destination)
 }
 
 
+
+
 /* *****************************************************************************
 print_hundreds
 
@@ -103,12 +125,26 @@ Outputs:
 ***************************************************************************** */
 void print_hundreds(char* print_string)
 {
-
-    // DEBUG
-    printf("%s",print_string);
-
-    // Full code to be completed
-
+    // Print Hundreds
+    if ('0' !=print_string[0])
+    {
+        printf("%shundred ", digits[(print_string[0] - ASCII_OFFSET)]);
+    }
+    // Print connecting "and" if non-zero digit in hundreds and tens or ones
+    if (('0' != print_string[0]) && (('0' != print_string[1]) || ('0' != print_string[2])))
+    {
+        printf("and ");
+    }
+    // Special case for teens, use ones digit as reference
+    if ('1' == print_string[1])
+    {
+        printf("%s ",teens[(print_string[2]- ASCII_OFFSET)]);
+    }
+    else
+    {
+        // Non need to check if either digit is non-zero as appropriate string array will not print anything at zero
+        printf("%s%s",tens[(print_string[1]- ASCII_OFFSET)], digits[(print_string[2]- ASCII_OFFSET)]);
+    }
 }
 
 
@@ -120,26 +156,30 @@ int main()
 
     uint8_t length = get_string_input(num_string);
 
-    // DEBUG
-    printf("%s, length %u\n", num_string, length);
+    uint8_t i = 0;              // String pointer
 
+    // Check if number is negative, print as such, and then increment the string pointer
+    if ('-' == num_string[0])
+    {
+        printf("negative ");
+        i++;
+    }
 
-    uint8_t i = 0;                                  // String pointer
     char pass_string[4] = {0};                       // Pass 3 digits + null terminator at a time through this string
-    uint8_t remainder = (length%3);
+    uint8_t remainder = ((length-i)%3);
 
     // Main loop which iterates through every three digits and passes them to print_hundreds
     while (0 < (length-i))
     {
         if (0 == remainder)
         {
-            pass_string[0] = num_string[i++];
+            pass_string[0] = num_string[i++];       // Pass three digits if all three are within num_string
             pass_string[1] = num_string[i++];
             pass_string[2] = num_string[i++];
         }
         else
         {
-            pass_string[0] = '0';
+            pass_string[0] = '0';                   // Pass one or two digits depending on remainder and fill the rest with zeros
             if (1 == remainder)
             {
                 pass_string[1] = '0';
@@ -152,14 +192,16 @@ int main()
                 pass_string[2] = num_string[i+1];
                 i += 2;
             }
-            remainder = 0;
+            remainder = 0;                          // Clear remainder to prevent it causing issues
         }
         print_hundreds(pass_string);
 
-        if (0 < length-i)
+        // Print the corresponding large number if pass_string was not all zero
+        if (('0' != pass_string[0]) && ('0' != pass_string[1]) && ('0' != pass_string[2]))
         {
             printf("%s", order[(length-i)/3]);
         }
+
 
     }
 
